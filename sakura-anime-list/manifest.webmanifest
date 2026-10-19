@@ -1,0 +1,19 @@
+{
+  "name": "Sakura Shelf — My Anime Library",
+  "short_name": "Sakura Shelf",
+  "description": "A personal anime collection with ratings and genre statistics.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0b10",
+  "theme_color": "#0b0b10",
+  "icons": [
+    {
+      "src": "assets/flower.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
