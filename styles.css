@@ -67,10 +67,13 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .app-shell { min-height: 100vh; margin-left: var(--sidebar); }
 .main-content { position: relative; z-index: 1; max-width: 1580px; margin: 0 auto; padding: 43px clamp(24px, 3vw, 46px) 54px; }
 .view { min-height: 60vh; animation: fade-up .25s ease both; }
-.page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 23px; }
+.page-header { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 16px; margin: 0 0 23px; }
+.page-header .page-title { grid-column: 2; text-align: center; }
+.page-header > :not(.page-title) { grid-column: 3; justify-self: end; }
 .page-title { margin: 0; font: 500 clamp(28px, 3vw, 38px)/1.2 "Playfair Display", Georgia, serif; letter-spacing: -.3px; }
 .page-title .accent { color: var(--pink); }
-.welcome-row { display: flex; align-items: center; justify-content: space-between; margin: 0 0 23px; }
+.welcome-row { display: flex; align-items: center; justify-content: center; margin: 0 0 23px; text-align: center; }
+.welcome-copy { width: 100%; }
 .welcome-copy .page-title { font-size: clamp(30px, 3.5vw, 43px); }
 .panel { min-width: 0; border: 1px solid var(--border); border-radius: 17px; background: linear-gradient(145deg, #17151fdf, #121118ee); box-shadow: 0 10px 40px #0000000a; }
 .panel-pad { padding: 19px; }
@@ -154,7 +157,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .loading-dot { width: 8px; height: 8px; margin-top: 4px; border-radius: 50%; background: var(--pink); animation: pulse .8s alternate infinite; }
 @keyframes pulse { to { opacity: .3; transform: scale(.7); } }
 .selected-anime { display: flex; align-items: center; gap: 13px; margin: 15px 0 19px; padding: 10px; border: 1px solid #b99ae833; border-radius: 11px; background: #b99ae807; }
-.selected-anime .cover-wrap { width: 68px; height: 90px; flex: none; aspect-ratio: auto; border-radius: 7px; }
+.selected-anime .cover-wrap { width: 88px; height: 117px; flex: none; aspect-ratio: auto; border-radius: 7px; }
 .selected-anime .cover-wrap img { width: 100%; height: 100%; }
 .selected-copy { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 8px; }
 .selected-copy strong { font-size: 13px; }
@@ -184,11 +187,11 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: #ffffff0b; }
 .progress-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #9976c6, #c99ec8); }
 .category-percent { color: var(--muted); font-size: 10px; text-align: right; }
-.account-card { width: min(560px, 100%); padding: 22px; }
+.account-card { width: min(560px, 100%); margin-inline: auto; padding: 22px; }
 .account-card form + form { margin-top: 25px; padding-top: 20px; border-top: 1px solid #ffffff0e; }
 .account-card .form-field:last-child { margin-bottom: 0; }
 .account-card .btn { margin-top: 6px; }
-.settings-group { width: min(620px, 100%); padding: 20px; }
+.settings-group { width: min(620px, 100%); margin-inline: auto; padding: 20px; }
 .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid #ffffff0b; }
 .setting-row:first-child { border-top: 0; }
 .setting-row strong { display: block; font-size: 12px; font-weight: 600; }
@@ -202,16 +205,21 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .toast { position: fixed; z-index: 80; right: 22px; bottom: 22px; max-width: min(400px, calc(100vw - 32px)); padding: 11px 15px; border: 1px solid #4d3d5d; border-radius: 11px; background: #1c1725; color: #f0e4f5; box-shadow: 0 18px 60px #0006; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s, transform .2s; font-size: 12px; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .mobile-nav { display: none; }
+.mobile-profile-link { display: none; }
+.mobile-profile-link img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 
 @media (min-width: 1450px) { .anime-grid { grid-template-columns: repeat(6, minmax(0,1fr)); } }
 @media (max-height: 720px) and (min-width: 921px) { .sidebar { padding-top: 14px; } .brand { padding-bottom: 15px; } .nav-link { height: 39px; } .sidebar-avatar { height: 145px; min-height: 130px; } .sidebar-avatar img { height: 120px; } .main-content { padding-top: 30px; } }
 @media (max-width: 1250px) { :root { --sidebar: 210px; } .anime-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } .recent-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+@media (max-width: 1100px) and (min-width: 921px) { .sakura-branch { width: min(390px, 42vw); opacity: .48; } }
 @media (max-width: 920px) {
   :root { --sidebar: 0px; }
   .sidebar { display: none; }
   .app-shell { margin-left: 0; }
-  .main-content { padding: 30px 22px 100px; }
-  .sakura-branch { width: min(520px, 72vw); opacity: .45; }
+  .main-content { padding: 160px 22px 100px; }
+  .sakura-branch { width: min(360px, 62vw); left: -10px; opacity: .4; }
+  .mobile-profile-link { position: fixed; z-index: 15; top: 15px; right: 16px; display: block; width: 42px; height: 42px; padding: 2px; border: 1px solid #806394; border-radius: 50%; background: #15111ce8; box-shadow: 0 4px 20px #0008; }
+  .mobile-profile-link.active { outline: 2px solid var(--lav); outline-offset: 3px; }
   .recent-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
   .anime-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
   .mobile-nav { position: fixed; z-index: 20; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom)); left: 12px; display: flex; align-items: center; justify-content: space-around; gap: 4px; padding: 7px; border: 1px solid #50405b; border-radius: 16px; background: #16131ced; box-shadow: 0 12px 40px #0009; backdrop-filter: blur(18px); }
@@ -220,8 +228,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 }
 @media (max-width: 640px) {
   .login-card { padding: 24px 20px 20px; }
-  .main-content { padding: 23px 14px 100px; }
-  .sakura-branch { width: 85vw; left: -10px; opacity: .35; }
+  .main-content { padding: 125px 14px 100px; }
+  .sakura-branch { width: min(280px, 72vw); left: -10px; opacity: .35; }
+  .mobile-profile-link { top: 12px; right: 12px; width: 38px; height: 38px; }
   .welcome-copy .page-title { font-size: 29px; }
   .stat-grid { grid-template-columns: 1fr; gap: 8px; }
   .stat-card { min-height: 69px; padding: 12px 14px; }
