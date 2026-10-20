@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sakura-anime-list-v10-typography-slider-icons';
+const CACHE_NAME = 'sakura-anime-list-v11-bodoni-close-gear';
 const APP_SHELL = [
   './', './index.html', './styles.css', './config.js', './app.js', './manifest.webmanifest',
   './assets/flower.svg', './assets/avatar-reference.png'
