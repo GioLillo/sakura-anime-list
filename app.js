@@ -1,4 +1,4 @@
-/* Sakura Shelf — simple cloud-first anime library. */
+/* Sakura Anime List — simple cloud-first anime library. */
 (() => {
   'use strict';
 
@@ -22,7 +22,7 @@
   ];
 
   let prefs = readJson(PREFS_KEY, { petals: true });
-  let state = { anime: [], profile: { username: 'Sakura' } };
+  let state = { anime: [], profile: { username: 'Sakura' }, podium: { 1: null, 2: null, 3: null } };
   let currentView = 'home';
   let editId = null;
   let selectedSearchItem = null;
@@ -34,6 +34,7 @@
   let cloudSession = null;
   let authMode = 'login';
   let toastTimer = null;
+  let podiumPickerPosition = 1;
   const searchCache = new Map();
 
   function readJson(key, fallback) {
@@ -134,15 +135,34 @@
     const el = document.getElementById('view-home');
     const list = getSortedAnime();
     const recent = list.slice(0, 5);
+    const counts = categoryCounts(list);
     el.innerHTML = `<div class="welcome-row"><div class="welcome-copy"><h1 class="page-title">Hello, <span class="accent" data-profile-name>${escapeHtml(state.profile.username || 'Sakura')}</span> <span class="accent">✿</span></h1></div></div>
       <div class="stat-grid">${statCard('▤', String(list.length), 'Total anime')}${statCard('✦', list.length ? averageRating().toFixed(1) : '—', 'Average rating', true)}${statCard('♡', favoriteCategory(), 'Top category')}</div>
+      <section class="panel home-category-stats"><div class="panel-heading"><h2>Anime by category</h2></div>${counts.length ? `<div class="category-list">${counts.map(([category,count],index) => `<div class="category-row"><span class="category-name">${escapeHtml(category)}</span><div class="progress-track"><div class="progress-fill" style="width:${Math.max(5,count/list.length*100)}%;${index%2 ? 'background:linear-gradient(90deg,#bd8cb4,#e8afc2)' : ''}"></div></div><span class="category-percent">${Math.round(count/list.length*100)}% · ${count}</span></div>`).join('')}</div>` : `<div class="empty-state compact-empty"><p>Your category statistics will appear here.</p></div>`}</section>
+      ${renderPodium()}
       <section class="panel panel-pad home-recent"><div class="panel-heading"><h2>Recently added</h2><button class="text-button" data-view="library">View all →</button></div>
-      ${recent.length ? `<div class="recent-grid">${recent.map(item => animeCard(item, true)).join('')}</div>` : `<div class="empty-state compact-empty"><strong>Your shelf is empty</strong><p>Search an anime to add it to your collection.</p><button class="btn btn-primary" data-view="add">＋ Add anime</button></div>`}</section>`;
+      ${recent.length ? `<div class="recent-grid">${recent.map(item => animeCard(item, true)).join('')}</div>` : `<div class="empty-state compact-empty"><strong>Your library is empty</strong><p>Add an anime from your library page.</p><button class="btn btn-primary" data-view="library">Open library</button></div>`}</section>`;
     applyCoverFallbacks(el);
+  }
+  function renderPodium() {
+    const ordered = [2, 1, 3];
+    const columns = ordered.map(position => {
+      const animeId = state.podium?.[position];
+      const anime = state.anime.find(item => String(item.id) === String(animeId));
+      return `<div class="podium-column podium-column-${position}">
+        <div class="podium-cover-area">
+          ${position === 1 && anime ? '<span class="podium-crown" aria-label="Winner">👑</span>' : ''}
+          ${anime ? `<button class="podium-cover-button" type="button" data-open-anime="${escapeHtml(anime.id)}" aria-label="View ${escapeHtml(anime.title)}">${coverMarkup(anime, 'podium-cover')}</button><span class="podium-title" title="${escapeHtml(anime.title)}">${escapeHtml(anime.title)}</span>` : `<div class="podium-empty">Choose an anime</div>`}
+          <button class="podium-add" type="button" data-podium-position="${position}" aria-label="Choose anime for rank ${position}" title="Choose anime">＋</button>
+        </div>
+        <div class="podium-step" aria-label="Rank ${position}">${position}</div>
+      </div>`;
+    }).join('');
+    return `<section class="panel podium-panel"><div class="panel-heading"><h2>My top 3</h2></div><p class="podium-hint">Choose your favourites from your library.</p><div class="podium-layout">${columns}</div></section>`;
   }
   function renderLibrary() {
     const el = document.getElementById('view-library');
-    el.innerHTML = `${pageHeader('My <span class="accent">library</span>', '<button class="btn btn-primary" data-view="add">＋ Add anime</button>')}
+    el.innerHTML = `${pageHeader('My <span class="accent">library</span>', '<button class="btn btn-primary" data-open-add>＋ Add anime</button>')}
       <div class="library-tools"><div class="search-field"><span class="search-icon">⌕</span><input class="search-input" id="library-search" type="search" placeholder="Search your library…" autocomplete="off"></div><select class="field-control field-select" id="library-category" aria-label="Filter by category"><option value="all">All categories</option>${CATEGORIES.map(category => `<option>${escapeHtml(category)}</option>`).join('')}</select><span class="library-count" id="library-count"></span></div><div class="anime-grid" id="library-grid"></div>`;
     el.querySelector('#library-search').addEventListener('input', updateLibraryGrid);
     el.querySelector('#library-category').addEventListener('change', updateLibraryGrid);
@@ -154,23 +174,23 @@
     const category = document.getElementById('library-category')?.value || 'all';
     const list = getSortedAnime(state.anime.filter(item => item.title.toLocaleLowerCase('en').includes(search) && (category === 'all' || item.category === category)));
     const count = document.getElementById('library-count'); if (count) count.textContent = `${list.length}`;
-    grid.innerHTML = list.length ? list.map(item => animeCard(item)).join('') : `<div class="panel library-empty"><div class="empty-state"><strong>${search || category !== 'all' ? 'No anime found' : 'Your shelf is empty'}</strong><p>${search || category !== 'all' ? 'Try a different search.' : 'Add your first anime to get started.'}</p>${search || category !== 'all' ? '' : '<button class="btn btn-primary" data-view="add">＋ Add anime</button>'}</div></div>`;
+    grid.innerHTML = list.length ? list.map(item => animeCard(item)).join('') : `<div class="panel library-empty"><div class="empty-state"><strong>${search || category !== 'all' ? 'No anime found' : 'Your library is empty'}</strong><p>${search || category !== 'all' ? 'Try a different search.' : 'Add your first anime to get started.'}</p>${search || category !== 'all' ? '' : '<button class="btn btn-primary" data-open-add>＋ Add anime</button>'}</div></div>`;
     applyCoverFallbacks(grid);
   }
 
   function renderAdd() {
     selectedSearchItem = null;
-    const el = document.getElementById('view-add');
+    const el = document.getElementById('add-content');
     const existing = editId ? state.anime.find(item => String(item.id) === String(editId)) : null;
     if (existing) selectedSearchItem = { ...existing, originalTitle: existing.title, source: 'Your library', genres: [existing.category] };
     const rating = Number(existing?.rating) || 8;
-    el.innerHTML = `${pageHeader(existing ? 'Edit rating' : 'Add <span class="accent">anime</span>')}
+    el.innerHTML = `<div class="add-modal-heading"><h2 id="add-modal-title">${existing ? 'Edit rating' : 'Add anime'}</h2><p>${existing ? 'Update your rating.' : 'Search a title, check its cover, then add it to your list.'}</p></div>
       <form class="panel form-panel simple-add-form" id="anime-form">
         <div class="form-field"><label for="anime-title">Anime title</label><div class="search-entry-row"><input class="field-control" id="anime-title" name="title" required maxlength="150" placeholder="Search an anime…" autocomplete="off" value="${escapeHtml(existing?.title || '')}" ${existing ? 'readonly' : ''}><button class="btn btn-primary search-submit" type="button" id="anime-search-button" ${existing ? 'disabled' : ''}>Search</button></div><div class="api-status" id="api-status">${existing ? 'Update the rating and save.' : 'Search the catalogue and select the correct anime.'}</div><div class="search-results" id="anime-search-results"></div></div>
         <div class="selected-anime ${existing ? '' : 'hidden'}" id="selected-anime">${existing ? `${coverMarkup(existing, 'selected-large-cover')}<div class="selected-copy"><strong id="selected-title">${escapeHtml(existing.title)}</strong><span class="category-chip ${existing.category === 'Romance' ? 'pink' : ''}" id="selected-category">${escapeHtml(existing.category)}</span></div>` : ''}</div>
         <input id="anime-cover-url" type="hidden" value="${escapeHtml(existing?.cover || '')}"><input id="anime-category" type="hidden" value="${escapeHtml(existing?.category || 'Other')}">
         <div class="form-field rating-field"><div class="field-label">Your rating</div><div class="rating-picker" id="rating-picker" role="group" aria-label="Rating from 1 to 10">${Array.from({length:10}, (_, i) => `<button type="button" class="rating-star ${i + 1 <= rating ? 'selected' : ''}" data-rating="${i + 1}" aria-label="${i + 1} out of 10">★</button>`).join('')}<span class="rating-number" id="rating-number">${rating.toFixed(1)} / 10</span></div><input type="hidden" id="anime-rating" value="${rating}"></div>
-        <div class="form-actions"><button class="btn btn-primary" type="submit" id="save-anime-button" ${existing ? '' : 'disabled'}>${existing ? 'Save rating' : '＋ Add to library'}</button><button class="btn" type="button" data-view="library">Cancel</button>${existing ? `<button class="btn btn-danger" type="button" id="delete-from-edit">Delete</button>` : ''}</div>
+        <div class="form-actions"><button class="btn btn-primary" type="submit" id="save-anime-button" ${existing ? '' : 'disabled'}>${existing ? 'Save rating' : '＋ Add to library'}</button><button class="btn" type="button" data-close="add-modal">Cancel</button>${existing ? `<button class="btn btn-danger" type="button" id="delete-from-edit">Delete</button>` : ''}</div>
       </form>`;
     const titleInput = el.querySelector('#anime-title');
     titleInput.addEventListener('input', () => {
@@ -375,9 +395,12 @@
     if (!target || token !== searchToken) return;
     lastSearchResults = results;
     if (status) status.textContent = `${results.length} results`;
-    target.innerHTML = results.slice(0, 12).map((item, index) => `<button type="button" class="search-result" data-search-result="${index}">
+    target.innerHTML = results.slice(0, 12).map((item, index) => {
+      const alreadyAdded = Boolean(findDuplicateTitle(item.title));
+      return `<button type="button" class="search-result ${alreadyAdded ? 'is-in-library' : ''}" data-search-result="${index}" ${alreadyAdded ? 'disabled aria-disabled="true"' : ''}>
       ${item.cover ? `<img class="result-cover" src="${escapeHtml(item.cover)}" alt="Cover of ${escapeHtml(item.title)}" loading="lazy">` : `<span class="result-cover result-cover-placeholder" aria-hidden="true">✿</span>`}
-      <span class="result-result-copy"><span class="result-title">${escapeHtml(item.title)}</span><span class="result-subtitle">${escapeHtml(item.originalTitle)}${item.year ? ` · ${escapeHtml(item.year)}` : ''}</span></span><span class="search-result-meta"><span class="category-chip ${item.category === 'Romance' ? 'pink' : ''}">${escapeHtml(item.category)}</span><span class="result-select">Select →</span></span></button>`).join('');
+      <span class="result-result-copy"><span class="result-title">${escapeHtml(item.title)}</span><span class="result-subtitle">${escapeHtml(item.originalTitle)}${item.year ? ` · ${escapeHtml(item.year)}` : ''}</span></span><span class="search-result-meta"><span class="category-chip ${item.category === 'Romance' ? 'pink' : ''}">${escapeHtml(item.category)}</span><span class="result-select">${alreadyAdded ? 'In library' : 'Select →'}</span></span></button>`;
+    }).join('');
     target.querySelectorAll('[data-search-result]').forEach(button => button.addEventListener('click', () => chooseSearchResult(Number(button.dataset.searchResult))));
     target.querySelectorAll('img.result-cover').forEach(img => img.addEventListener('error', () => {
       const placeholder = document.createElement('span'); placeholder.className = 'result-cover result-cover-placeholder'; placeholder.textContent = '✿';
@@ -405,12 +428,18 @@
     applyCoverFallbacks(selected);
     toast(`Selected · ${selectedSearchItem.category}`);
   }
+  function normalizeTitleForDuplicate(title) { return String(title || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en'); }
+  function findDuplicateTitle(title, excludeId = null) { return state.anime.find(item => String(item.id) !== String(excludeId ?? '') && normalizeTitleForDuplicate(item.title) === normalizeTitleForDuplicate(title)); }
   async function submitAnimeForm(event) {
     event.preventDefault();
     const old = editId ? state.anime.find(item => String(item.id) === String(editId)) : null;
     const title = document.getElementById('anime-title').value.trim();
     if (!old && (!selectedSearchItem || selectedSearchItem.title !== title)) { toast('Search and select an anime first.'); return; }
     const source = old || selectedSearchItem;
+    if (!old) {
+      const duplicate = findDuplicateTitle(source.title);
+      if (duplicate) { toast('This anime is already in your library.'); return; }
+    }
     const rating = Math.max(1, Math.min(10, Number(document.getElementById('anime-rating').value) || 8));
     const entry = { id:old?.id || '', title:source.title, category:CATEGORIES.includes(source.category) ? source.category : guessCategory(source.genres), rating,
       cover:safeCover(source.cover || source.cover_url), created_at:old?.created_at || new Date().toISOString() };
@@ -420,13 +449,57 @@
       const saved = await saveAnimeEntry(entry, Boolean(old));
       if (old) state.anime = state.anime.map(item => String(item.id) === String(old.id) ? saved : item);
       else state.anime.push(saved);
-      editId = null; selectedSearchItem = null; renderAll(); navigate('library'); toast(old ? 'Rating updated' : 'Anime added');
+      editId = null; selectedSearchItem = null; closeModal('add-modal'); renderAll(); showView('library'); toast(old ? 'Rating updated' : 'Anime added');
     } catch (error) {
-      console.error(error); toast('Could not save. Check your database setup.');
+      console.error(error); toast(error?.code === '23505' ? 'This anime is already in your library.' : 'Could not save. Check your database setup.');
       if (submit) { submit.disabled = false; submit.textContent = old ? 'Save rating' : '＋ Add to library'; }
     }
   }
   function isUuid(value) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value)); }
+  async function savePodiumSlot(position, animeId) {
+    if (!cloudClient || !cloudSession?.user) throw new Error('You must be signed in.');
+    const userId = cloudSession.user.id;
+    // A title can appear only once on the podium. Move it if it is already assigned elsewhere.
+    const { error: removeError } = await cloudClient.from('anime_podium').delete().eq('user_id', userId).eq('anime_id', animeId);
+    if (removeError) throw removeError;
+    const { data, error } = await cloudClient.from('anime_podium').upsert({ user_id:userId, position, anime_id:animeId, updated_at:new Date().toISOString() }, { onConflict:'user_id,position' }).select().single();
+    if (error) throw error;
+    Object.keys(state.podium).forEach(key => { if (String(state.podium[key]) === String(animeId)) state.podium[key] = null; });
+    state.podium[position] = animeId;
+    closeModal('podium-picker-modal'); renderHome(); toast(`Top ${position} updated`);
+  }
+  async function clearPodiumSlot(position) {
+    if (!cloudClient || !cloudSession?.user) throw new Error('You must be signed in.');
+    const { error } = await cloudClient.from('anime_podium').delete().eq('user_id', cloudSession.user.id).eq('position', position);
+    if (error) throw error;
+    state.podium[position] = null;
+    closeModal('podium-picker-modal'); renderHome(); toast('Podium updated');
+  }
+  function openPodiumPicker(position) {
+    podiumPickerPosition = Number(position);
+    const target = document.getElementById('podium-picker-content');
+    const currentId = state.podium?.[podiumPickerPosition];
+    const items = getSortedAnime();
+    target.innerHTML = `<div class="podium-picker-heading"><h2 id="podium-picker-title">Choose your #${podiumPickerPosition}</h2><p>Select an anime from your library.</p></div>${currentId ? '<button class="btn btn-danger" type="button" id="clear-podium-slot">Remove from podium</button>' : ''}<div class="podium-picker-list">${items.length ? items.map(item => `<button type="button" class="podium-picker-item" data-choose-podium="${escapeHtml(item.id)}">${item.cover ? `<img class="podium-picker-cover" src="${escapeHtml(item.cover)}" alt="" loading="lazy">` : '<span class="podium-picker-cover"></span>'}<span><span class="podium-picker-title">${escapeHtml(item.title)}</span><span class="podium-picker-subtitle">${escapeHtml(item.category)} · ★ ${Number(item.rating).toFixed(1)}</span></span><span aria-hidden="true">＋</span></button>`).join('') : '<div class="podium-picker-empty">Your library is empty. Add an anime first.</div>'}</div>`;
+    target.querySelectorAll('[data-choose-podium]').forEach(button => button.addEventListener('click', async () => {
+      button.disabled = true;
+      try { await savePodiumSlot(podiumPickerPosition, button.dataset.choosePodium); }
+      catch (error) { console.error(error); toast('Could not update the podium. Run the latest supabase-schema.sql.'); button.disabled = false; }
+    }));
+    target.querySelector('#clear-podium-slot')?.addEventListener('click', async event => {
+      event.currentTarget.disabled = true;
+      try { await clearPodiumSlot(podiumPickerPosition); }
+      catch (error) { console.error(error); toast('Could not update the podium.'); event.currentTarget.disabled = false; }
+    });
+    target.querySelectorAll('img.podium-picker-cover').forEach(img => img.addEventListener('error', () => { img.removeAttribute('src'); img.alt = ''; }, { once:true }));
+    openModal('podium-picker-modal');
+  }
+  function openAddModal() {
+    editId = editId || null;
+    renderAdd();
+    openModal('add-modal');
+    setTimeout(() => document.getElementById('anime-title')?.focus(), 40);
+  }
   function mapRemoteAnime(row) { return { id:row.id, title:row.title, cover:row.cover_url || '', category:row.category || 'Other', rating:Number(row.rating) || 0, created_at:row.created_at || new Date().toISOString() }; }
   async function saveAnimeEntry(entry, isEdit = false) {
     if (!cloudClient || !cloudSession?.user) throw new Error('You must be signed in.');
@@ -444,7 +517,8 @@
     try {
       const { error } = await cloudClient.from('anime').delete().eq('id', id); if (error) throw error;
       state.anime = state.anime.filter(item => String(item.id) !== String(id));
-      closeModal('detail-modal'); editId = null; renderAll(); navigate(currentView === 'add' ? 'library' : currentView); toast('Anime deleted');
+      Object.keys(state.podium || {}).forEach(key => { if (String(state.podium[key]) === String(id)) state.podium[key] = null; });
+      closeModal('detail-modal'); closeModal('add-modal'); editId = null; renderAll(); showView(currentView === 'add' ? 'library' : currentView); toast('Anime deleted');
     } catch (error) { console.error(error); toast('Could not delete this anime.'); }
   }
   function renderDetail(id) {
@@ -452,12 +526,6 @@
     const box = document.getElementById('detail-content');
     box.innerHTML = `<div class="detail-layout"><div class="detail-cover">${coverMarkup(anime)}</div><div class="detail-body"><h2 class="detail-title" id="detail-title">${escapeHtml(anime.title)}</h2><span class="category-chip ${anime.category === 'Romance' ? 'pink' : ''}">${escapeHtml(anime.category || 'Other')}</span><div class="detail-rating"><span style="font-size:25px">★</span><strong>${Number(anime.rating || 0).toFixed(1)}</strong><span class="muted">/ 10</span></div><div class="detail-date">Added ${escapeHtml(fmtDate(anime.created_at))}</div><div class="detail-actions"><button class="btn btn-primary" data-edit-anime="${escapeHtml(anime.id)}">Edit rating</button><button class="btn btn-danger" data-delete-anime="${escapeHtml(anime.id)}">Delete</button></div></div></div>`;
     applyCoverFallbacks(box); openModal('detail-modal');
-  }
-  function renderStats() {
-    const el = document.getElementById('view-stats'); const counts = categoryCounts(); const maxCount = Math.max(1, ...counts.map(item => item[1]));
-    el.innerHTML = `${pageHeader('Statistics')}
-      <div class="stat-grid">${statCard('▤', String(state.anime.length), 'Total anime')}${statCard('✦', state.anime.length ? averageRating().toFixed(1) : '—', 'Average rating', true)}${statCard('♡', favoriteCategory(), 'Top category')}</div>
-      <section class="panel chart-panel"><div class="panel-heading"><h2>Anime by category</h2></div>${counts.length ? `<div class="category-list stats-category-list">${counts.map(([category,count],index) => `<div class="category-row"><span class="category-name">${escapeHtml(category)}</span><div class="progress-track"><div class="progress-fill" style="width:${Math.max(5,count/maxCount*100)}%;${index%2 ? 'background:linear-gradient(90deg,#bd8cb4,#e8afc2)' : ''}"></div></div><span class="category-percent">${Math.round(count/state.anime.length*100)}% · ${count}</span></div>`).join('')}</div>` : `<div class="empty-state"><strong>No statistics yet</strong><p>Add anime to see your favourite categories.</p></div>`}</section>`;
   }
   function renderProfile() {
     const el = document.getElementById('view-profile');
@@ -502,25 +570,24 @@
     el.querySelector('#sign-out').addEventListener('click', signOutCloud);
   }
   function renderAll() {
-    renderHome(); renderLibrary(); renderStats(); renderProfile(); renderSettings(); updateNameUI();
+    renderHome(); renderLibrary(); renderProfile(); renderSettings(); updateNameUI();
     showView(currentView);
   }
   function showView(view) {
-    const allowed = ['home','library','add','stats','profile','settings']; if (!allowed.includes(view)) view = 'home'; currentView = view;
+    const allowed = ['home','library','profile','settings']; if (!allowed.includes(view)) view = 'home'; currentView = view;
     document.querySelectorAll('.view').forEach(el => el.classList.toggle('hidden', el.id !== `view-${view}`));
     document.querySelectorAll('[data-view]').forEach(button => button.classList.toggle('active', button.dataset.view === view));
-    if (view === 'add') renderAdd();
     if (view === 'settings') renderSettings();
     window.scrollTo({ top:0, behavior:'smooth' });
   }
-  function navigate(view) { if (view === 'add') editId = null; showView(view); }
+  function navigate(view) { if (view === 'add') { editId = null; openAddModal(); return; } showView(view); }
   function openModal(id) { document.getElementById(id)?.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
   function closeModal(id) { document.getElementById(id)?.classList.add('hidden'); if (!document.querySelector('.modal-backdrop:not(.hidden)')) document.body.style.overflow = ''; }
 
   function updateAuthLabels() {
     const signup = authMode === 'signup';
     document.getElementById('auth-title').textContent = signup ? 'Create account' : 'Sign in';
-    document.getElementById('auth-description').textContent = signup ? 'Create your personal anime shelf.' : 'Your anime library, wherever you are.';
+    document.getElementById('auth-description').textContent = signup ? 'Create your personal anime list.' : 'Your personal anime list, wherever you are.';
     document.getElementById('auth-submit').textContent = signup ? 'Create account' : 'Sign in';
     document.getElementById('auth-switch').textContent = signup ? 'Already have an account? Sign in' : 'New here? Create an account';
     document.getElementById('auth-password').autocomplete = signup ? 'new-password' : 'current-password';
@@ -558,7 +625,7 @@
     cloudClient.auth.onAuthStateChange((event, session) => {
       cloudSession = session;
       if (event === 'SIGNED_OUT') {
-        state = { anime:[], profile:{ username:'Sakura' } };
+        state = { anime:[], profile:{ username:'Sakura' }, podium:{ 1:null, 2:null, 3:null } };
         showLogin('You have signed out.');
       }
     });
@@ -578,13 +645,17 @@
   async function loadCloudLibrary() {
     if (!cloudClient || !cloudSession?.user) throw new Error('No active session.');
     const userId = cloudSession.user.id;
-    const [{ data:anime, error:animeError }, { data:profile, error:profileError }] = await Promise.all([
-      cloudClient.from('anime').select('id,user_id,title,cover_url,category,rating,created_at').order('created_at', { ascending:false }),
-      cloudClient.from('profiles').select('id,username').eq('id', userId).maybeSingle()
+    const [{ data:anime, error:animeError }, { data:profile, error:profileError }, { data:podiumRows, error:podiumError }] = await Promise.all([
+      cloudClient.from('anime').select('id,user_id,title,cover_url,category,rating,created_at').eq('user_id', userId).order('created_at', { ascending:false }),
+      cloudClient.from('profiles').select('id,username').eq('id', userId).maybeSingle(),
+      cloudClient.from('anime_podium').select('position,anime_id').eq('user_id', userId)
     ]);
     if (animeError) throw animeError;
     if (profileError) throw profileError;
+    if (podiumError) throw podiumError;
     state.anime = (anime || []).map(mapRemoteAnime);
+    state.podium = { 1:null, 2:null, 3:null };
+    (podiumRows || []).forEach(row => { if ([1,2,3].includes(Number(row.position))) state.podium[Number(row.position)] = row.anime_id; });
     const fallbackName = cloudSession.user.user_metadata?.username || cloudSession.user.email?.split('@')[0] || 'Sakura';
     state.profile = { username: profile?.username || fallbackName };
     if (!profile) {
@@ -596,15 +667,18 @@
     if (!cloudClient) return;
     const { error } = await cloudClient.auth.signOut();
     if (error) { toast('Could not sign out.'); return; }
-    cloudSession = null; state = { anime:[], profile:{ username:'Sakura' } }; showLogin('You have signed out.');
+    cloudSession = null; state = { anime:[], profile:{ username:'Sakura' }, podium:{ 1:null, 2:null, 3:null } }; showLogin('You have signed out.');
   }
   document.addEventListener('click', event => {
     const close = event.target.closest('[data-close]'); if (close) { closeModal(close.dataset.close); return; }
     if (event.target.classList.contains('modal-backdrop')) { closeModal(event.target.id); return; }
+    const add = event.target.closest('[data-open-add]'); if (add) { editId = null; openAddModal(); return; }
+    const podium = event.target.closest('[data-podium-position]'); if (podium) { openPodiumPicker(podium.dataset.podiumPosition); return; }
+    const choosePodium = event.target.closest('[data-choose-podium]'); if (choosePodium) return;
     const nav = event.target.closest('[data-view]'); if (nav) { event.preventDefault(); navigate(nav.dataset.view); return; }
-    const open = event.target.closest('[data-open-anime]'); if (open) { renderDetail(open.dataset.openAnime); return; }
-    const edit = event.target.closest('[data-edit-anime]'); if (edit) { editId = edit.dataset.editAnime; closeModal('detail-modal'); showView('add'); return; }
+    const edit = event.target.closest('[data-edit-anime]'); if (edit) { editId = edit.dataset.editAnime; closeModal('detail-modal'); openAddModal(); return; }
     const del = event.target.closest('[data-delete-anime]'); if (del) { deleteAnime(del.dataset.deleteAnime); return; }
+    const open = event.target.closest('[data-open-anime]'); if (open) { renderDetail(open.dataset.openAnime); return; }
   });
   document.addEventListener('keydown', event => {
     const card = event.target.closest('[data-open-anime]');

@@ -1,7 +1,7 @@
 {
-  "name": "Sakura Shelf — My Anime Library",
-  "short_name": "Sakura Shelf",
-  "description": "A personal anime collection with ratings and genre statistics.",
+  "name": "Sakura Anime List",
+  "short_name": "Sakura Anime List",
+  "description": "A minimal personal anime list with ratings and genre statistics.",
   "lang": "en",
   "start_url": "./",
   "scope": "./",
