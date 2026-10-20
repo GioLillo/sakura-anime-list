@@ -136,7 +136,7 @@
     const list = getSortedAnime();
     const recent = list.slice(0, 5);
     const counts = categoryCounts(list);
-    el.innerHTML = `<div class="welcome-row"><div class="welcome-copy"><h1 class="page-title">Hello, <span class="accent" data-profile-name>${escapeHtml(state.profile.username || 'Sakura')}</span> <span class="accent">✿</span></h1></div></div>
+    el.innerHTML = `<div class="welcome-row"><div class="welcome-copy"><h1 class="page-title">Hello, <span class="accent" data-profile-name>${escapeHtml(state.profile.username || 'Sakura')}</span> <span class="accent">🌸</span></h1></div></div>
       <div class="stat-grid">${statCard('▤', String(list.length), 'Total anime')}${statCard('✦', list.length ? averageRating().toFixed(1) : '—', 'Average rating', true)}${statCard('♡', favoriteCategory(), 'Top category')}</div>
       <section class="panel home-category-stats"><div class="panel-heading"><h2>Anime by category</h2></div>${counts.length ? `<div class="category-list">${counts.map(([category,count],index) => `<div class="category-row"><span class="category-name">${escapeHtml(category)}</span><div class="progress-track"><div class="progress-fill" style="width:${Math.max(5,count/list.length*100)}%;${index%2 ? 'background:linear-gradient(90deg,#bd8cb4,#e8afc2)' : ''}"></div></div><span class="category-percent">${Math.round(count/list.length*100)}% · ${count}</span></div>`).join('')}</div>` : `<div class="empty-state compact-empty"><p>Your category statistics will appear here.</p></div>`}</section>
       ${renderPodium()}
@@ -189,7 +189,7 @@
         <div class="form-field"><label for="anime-title">Anime title</label><div class="search-entry-row"><input class="field-control" id="anime-title" name="title" required maxlength="150" placeholder="Search an anime…" autocomplete="off" value="${escapeHtml(existing?.title || '')}" ${existing ? 'readonly' : ''}><button class="btn btn-primary search-submit" type="button" id="anime-search-button" ${existing ? 'disabled' : ''}>Search</button></div><div class="api-status" id="api-status">${existing ? 'Update the rating and save.' : 'Search the catalogue and select the correct anime.'}</div><div class="search-results" id="anime-search-results"></div></div>
         <div class="selected-anime ${existing ? '' : 'hidden'}" id="selected-anime">${existing ? `${coverMarkup(existing, 'selected-large-cover')}<div class="selected-copy"><strong id="selected-title">${escapeHtml(existing.title)}</strong><span class="category-chip ${existing.category === 'Romance' ? 'pink' : ''}" id="selected-category">${escapeHtml(existing.category)}</span></div>` : ''}</div>
         <input id="anime-cover-url" type="hidden" value="${escapeHtml(existing?.cover || '')}"><input id="anime-category" type="hidden" value="${escapeHtml(existing?.category || 'Other')}">
-        <div class="form-field rating-field"><div class="field-label">Your rating</div><div class="rating-picker" id="rating-picker" role="group" aria-label="Rating from 1 to 10">${Array.from({length:10}, (_, i) => `<button type="button" class="rating-star ${i + 1 <= rating ? 'selected' : ''}" data-rating="${i + 1}" aria-label="${i + 1} out of 10">★</button>`).join('')}<span class="rating-number" id="rating-number">${rating.toFixed(1)} / 10</span></div><input type="hidden" id="anime-rating" value="${rating}"></div>
+        <div class="form-field rating-field"><div class="rating-label-row"><label class="field-label" for="anime-rating">Your rating</label><output class="rating-number" id="rating-number" for="anime-rating">${rating.toFixed(1)} / 10</output></div><input class="rating-slider" type="range" id="anime-rating" name="rating" min="1" max="10" step="0.1" value="${rating.toFixed(1)}" aria-label="Your rating from 1 to 10"><div class="rating-scale" aria-hidden="true"><span>1</span><span>5</span><span>10</span></div></div>
         <div class="form-actions"><button class="btn btn-primary" type="submit" id="save-anime-button" ${existing ? '' : 'disabled'}>${existing ? 'Save rating' : '＋ Add to library'}</button><button class="btn" type="button" data-close="add-modal">Cancel</button>${existing ? `<button class="btn btn-danger" type="button" id="delete-from-edit">Delete</button>` : ''}</div>
       </form>`;
     const titleInput = el.querySelector('#anime-title');
@@ -203,15 +203,22 @@
     });
     el.querySelector('#anime-search-button').addEventListener('click', () => scheduleAnimeSearch(titleInput.value, true));
     titleInput.addEventListener('keydown', event => { if (event.key === 'Enter' && !existing) { event.preventDefault(); scheduleAnimeSearch(titleInput.value, true); } });
-    el.querySelectorAll('[data-rating]').forEach(button => button.addEventListener('click', () => setFormRating(Number(button.dataset.rating))));
+    const ratingSlider = el.querySelector('#anime-rating');
+    ratingSlider.addEventListener('input', () => setFormRating(Number(ratingSlider.value)));
+    setFormRating(rating);
     el.querySelector('#anime-form').addEventListener('submit', submitAnimeForm);
     if (existing) el.querySelector('#delete-from-edit').addEventListener('click', () => deleteAnime(existing.id));
     if (existing) { applyCoverFallbacks(el); }
   }
   function setFormRating(rating) {
-    const hidden = document.getElementById('anime-rating'); if (hidden) hidden.value = String(rating);
-    document.querySelectorAll('#rating-picker [data-rating]').forEach(button => button.classList.toggle('selected', Number(button.dataset.rating) <= rating));
-    const number = document.getElementById('rating-number'); if (number) number.textContent = `${rating.toFixed(1)} / 10`;
+    const normalized = Math.round(Math.max(1, Math.min(10, Number(rating) || 1)) * 10) / 10;
+    const slider = document.getElementById('anime-rating');
+    if (slider) {
+      slider.value = normalized.toFixed(1);
+      slider.style.setProperty('--range-progress', `${((normalized - 1) / 9) * 100}%`);
+    }
+    const number = document.getElementById('rating-number');
+    if (number) number.textContent = `${normalized.toFixed(1)} / 10`;
   }
   function scheduleAnimeSearch(value, immediate = false) {
     clearTimeout(searchTimer); searchToken += 1;
@@ -372,7 +379,7 @@
         renderSearchResults(ranked, query, token);
       } else if (successes.length === providers.length && failures.length === 0) {
         if (status) status.textContent = '';
-        resultsEl.innerHTML = `<div class="search-empty"><span>✿</span><div><strong>No results found</strong><p>Try another spelling or the Japanese title.</p></div></div>`;
+        resultsEl.innerHTML = `<div class="search-empty"><span>🌸</span><div><strong>No results found</strong><p>Try another spelling or the Japanese title.</p></div></div>`;
       } else {
         if (status) status.textContent = '';
         resultsEl.innerHTML = `<div class="search-empty search-api-failure"><span>!</span><div><strong>Search is temporarily unavailable</strong><p>Check your internet connection and try again.</p><details class="search-diagnostics"><summary>Technical details</summary><code>${escapeHtml(failures.join(' · '))}</code></details><button class="btn btn-sm" type="button" id="retry-anime-search">Try again</button></div></div>`;
@@ -398,12 +405,12 @@
     target.innerHTML = results.slice(0, 12).map((item, index) => {
       const alreadyAdded = Boolean(findDuplicateTitle(item.title));
       return `<button type="button" class="search-result ${alreadyAdded ? 'is-in-library' : ''}" data-search-result="${index}" ${alreadyAdded ? 'disabled aria-disabled="true"' : ''}>
-      ${item.cover ? `<img class="result-cover" src="${escapeHtml(item.cover)}" alt="Cover of ${escapeHtml(item.title)}" loading="lazy">` : `<span class="result-cover result-cover-placeholder" aria-hidden="true">✿</span>`}
+      ${item.cover ? `<img class="result-cover" src="${escapeHtml(item.cover)}" alt="Cover of ${escapeHtml(item.title)}" loading="lazy">` : `<span class="result-cover result-cover-placeholder" aria-hidden="true">🌸</span>`}
       <span class="result-result-copy"><span class="result-title">${escapeHtml(item.title)}</span><span class="result-subtitle">${escapeHtml(item.originalTitle)}${item.year ? ` · ${escapeHtml(item.year)}` : ''}</span></span><span class="search-result-meta"><span class="category-chip ${item.category === 'Romance' ? 'pink' : ''}">${escapeHtml(item.category)}</span><span class="result-select">${alreadyAdded ? 'In library' : 'Select →'}</span></span></button>`;
     }).join('');
     target.querySelectorAll('[data-search-result]').forEach(button => button.addEventListener('click', () => chooseSearchResult(Number(button.dataset.searchResult))));
     target.querySelectorAll('img.result-cover').forEach(img => img.addEventListener('error', () => {
-      const placeholder = document.createElement('span'); placeholder.className = 'result-cover result-cover-placeholder'; placeholder.textContent = '✿';
+      const placeholder = document.createElement('span'); placeholder.className = 'result-cover result-cover-placeholder'; placeholder.textContent = '🌸';
       if (img.isConnected) img.replaceWith(placeholder);
     }, { once:true }));
   }
@@ -440,7 +447,7 @@
       const duplicate = findDuplicateTitle(source.title);
       if (duplicate) { toast('This anime is already in your library.'); return; }
     }
-    const rating = Math.max(1, Math.min(10, Number(document.getElementById('anime-rating').value) || 8));
+    const rating = Math.round(Math.max(1, Math.min(10, Number(document.getElementById('anime-rating').value) || 8)) * 10) / 10;
     const entry = { id:old?.id || '', title:source.title, category:CATEGORIES.includes(source.category) ? source.category : guessCategory(source.genres), rating,
       cover:safeCover(source.cover || source.cover_url), created_at:old?.created_at || new Date().toISOString() };
     const submit = document.getElementById('save-anime-button');
