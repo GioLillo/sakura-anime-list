@@ -10,7 +10,7 @@
   --pink: #e8afc2;
   --border: #292531;
   --sidebar: 235px;
-  font-family: "BlackChancery", "Apple Chancery", cursive;
+  font-family: "Cinzel", serif;
   font-weight: 600;
 }
 * { box-sizing: border-box; }
@@ -33,9 +33,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .login-screen { position: relative; z-index: 4; min-height: 100vh; padding: 28px 16px; display: grid; place-items: center; }
 .login-card { width: min(410px, 100%); padding: 30px 30px 24px; border: 1px solid #3b3046; border-radius: 20px; background: #101016ed; box-shadow: 0 25px 80px #0009; backdrop-filter: blur(18px); text-align: center; }
 .login-mark { color: var(--pink); font-size: 26px; line-height: 1; }
-.login-brand { margin-top: 5px; font: 600 26px "BlackChancery", "Apple Chancery", cursive; color: var(--lav-light); }
+.login-brand { margin-top: 5px; font: 600 26px "Cinzel", serif; color: var(--lav-light); }
 .login-avatar { display: block; width: 100px; height: 112px; object-fit: contain; margin: 10px auto 8px; animation: float-hair 6s ease-in-out infinite; }
-.login-card h1 { margin: 5px 0 4px; font: 600 24px "BlackChancery", "Apple Chancery", cursive; }
+.login-card h1 { margin: 5px 0 4px; font: 600 24px "Cinzel", serif; }
 .login-description { margin: 0 0 22px; color: var(--muted); font-size: 12px; }
 .login-card form { text-align: left; }
 .login-card label { display: block; margin: 12px 0 6px; color: #d8d0df; font-size: 12px; }
@@ -52,7 +52,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .sidebar { position: fixed; z-index: 10; inset: 0 auto 0 0; width: var(--sidebar); display: flex; flex-direction: column; padding: 23px 15px 7px; overflow: hidden; background: linear-gradient(180deg, #0d0c12f4, #0e0d13f5); border-right: 1px solid #292531aa; backdrop-filter: blur(18px); }
 .brand { display: flex; align-items: center; gap: 10px; padding: 2px 9px 29px; text-decoration: none; position: relative; z-index: 3; }
 .brand-flower { color: var(--pink); font-size: 27px; line-height: 1; }
-.brand strong { display: block; font: 700 16px "BlackChancery", "Apple Chancery", cursive; color: var(--text); }
+.brand strong { display: block; font: 700 16px "Cinzel", serif; color: var(--text); }
 .brand small { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; letter-spacing: 1.6px; }
 .side-nav { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 5px; }
 .nav-link { height: 43px; padding: 0 12px; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: #b8b0c4; text-align: left; transition: background .18s, color .18s, border-color .18s; }
@@ -66,14 +66,14 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .sidebar-avatar { position: relative; display: flex; width: 100%; min-height: 190px; height: 225px; flex-direction: column; align-items: center; justify-content: flex-end; margin-top: 4px; padding: 0 0 8px; overflow: hidden; border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--text); }
 .sidebar-avatar:hover { border-color: #b99ae81a; background: #b99ae808; }
 .sidebar-avatar img { display: block; width: 100%; height: 190px; object-fit: contain; object-position: center bottom; transform-origin: center bottom; animation: float-hair 6s ease-in-out infinite; filter: drop-shadow(0 5px 14px #0007); }
-.sidebar-avatar-caption { position: relative; z-index: 2; color: #e4d2f4; font: 500 13px "BlackChancery", "Apple Chancery", cursive; }
+.sidebar-avatar-caption { position: relative; z-index: 2; color: #e4d2f4; font: 500 13px "Cinzel", serif; }
 .app-shell { min-height: 100vh; margin-left: var(--sidebar); }
 .main-content { position: relative; z-index: 1; max-width: 1580px; margin: 0 auto; padding: 43px clamp(24px, 3vw, 46px) 54px; }
 .view { min-height: 60vh; animation: fade-up .25s ease both; }
 .page-header { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 16px; margin: 0 0 23px; }
 .page-header .page-title { grid-column: 2; text-align: center; }
 .page-header > :not(.page-title) { grid-column: 3; justify-self: end; }
-.page-title { margin: 0; font: 600 clamp(28px, 3vw, 38px)/1.2 "BlackChancery", "Apple Chancery", cursive; letter-spacing: -.3px; }
+.page-title { margin: 0; font: 600 clamp(28px, 3vw, 38px)/1.2 "Cinzel", serif; letter-spacing: -.3px; }
 .page-title .accent { color: var(--pink); }
 .welcome-row { display: flex; align-items: center; justify-content: center; margin: 0 0 23px; text-align: center; }
 .welcome-copy { width: 100%; }
@@ -81,7 +81,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .panel { min-width: 0; border: 1px solid var(--border); border-radius: 17px; background: linear-gradient(145deg, #17151fdf, #121118ee); box-shadow: 0 10px 40px #0000000a; }
 .panel-pad { padding: 19px; }
 .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.panel-heading h2 { margin: 0; font: 600 19px "BlackChancery", "Apple Chancery", cursive; }
+.panel-heading h2 { margin: 0; font: 600 19px "Cinzel", serif; }
 .muted { color: var(--muted); }
 .text-button { padding: 5px 0; border: 0; background: transparent; color: var(--lav-light); }
 .text-button:hover { color: var(--pink); }
@@ -98,7 +98,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .stat-card { position: relative; display: flex; min-height: 82px; align-items: center; gap: 13px; padding: 15px 17px; overflow: hidden; border: 1px solid var(--border); border-radius: 15px; background: linear-gradient(130deg, #17151fef, #121118ec); }
 .stat-icon { display: grid; width: 38px; height: 38px; flex: none; place-items: center; border-radius: 12px; background: #b99ae81a; color: var(--lav-light); font-size: 21px; }
 .stat-icon.pink { color: var(--pink); background: #e8afc21a; }
-.stat-value { font: 500 25px/1.15 "BlackChancery", "Apple Chancery", cursive; }
+.stat-value { font: 500 25px/1.15 "Cinzel", serif;}
 .stat-label { margin-top: 3px; color: var(--muted); font-size: 11px; }
 .home-recent { padding: 19px; }
 .recent-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
@@ -107,7 +107,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .cover-wrap { position: relative; overflow: hidden; aspect-ratio: 3 / 4; background: #211a2a; }
 .cover-wrap img { position: relative; z-index: 1; display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
 .anime-card:hover .cover-wrap img { transform: scale(1.025); }
-.cover-fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: radial-gradient(circle at 35% 25%, var(--cover-glow), #17131f 70%); color: #f4edf8; text-align: center; font: 500 16px "BlackChancery", "Apple Chancery", cursive; overflow-wrap: anywhere; }
+.cover-fallback { position: absolute; inset: 0; display: grid; place-items: center; padding: 12px; background: radial-gradient(circle at 35% 25%, var(--cover-glow), #17131f 70%); color: #f4edf8; text-align: center; font: 500 16px "Cinzel", serif; overflow-wrap: anywhere; }
 .cover-meta { min-height: 67px; padding: 9px 10px; }
 .cover-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; min-height: 31px; font-size: 11px; font-weight: 600; line-height: 1.35; }
 .cover-rating { display: flex; align-items: center; gap: 5px; margin-top: 5px; color: #f3d5a1; font-size: 11px; }
@@ -168,7 +168,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .selected-copy strong { font-size: 13px; }
 .rating-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .rating-label-row .field-label { margin: 0; }
-.rating-number { color: var(--lav-light); font: 600 16px "BlackChancery", "Apple Chancery", cursive; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rating-number { color: var(--lav-light); font: 600 16px "Cinzel", serif; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .rating-slider { --range-progress: 77.8%; display: block; width: 100%; height: 6px; margin: 7px 0 3px; padding: 0; appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; background: linear-gradient(to right, var(--lav) 0, var(--pink) var(--range-progress), #37303f var(--range-progress), #37303f 100%); cursor: ew-resize; outline: none; touch-action: pan-y; }
 .rating-slider::-webkit-slider-thumb { width: 18px; height: 18px; appearance: none; -webkit-appearance: none; border: 3px solid #f1d7fa; border-radius: 50%; background: var(--pink); box-shadow: 0 0 0 4px #e8afc21c, 0 2px 8px #0008; }
 .rating-slider::-moz-range-thumb { width: 13px; height: 13px; border: 3px solid #f1d7fa; border-radius: 50%; background: var(--pink); box-shadow: 0 0 0 4px #e8afc21c, 0 2px 8px #0008; }
@@ -184,9 +184,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .modal-close:hover { color: var(--text); border-color: #b99ae866; background: #b99ae811; }
 .detail-layout { display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 24px; align-items: start; }
 .detail-cover .cover-wrap { border-radius: 11px; }
-.detail-title { margin: 7px 0 10px; font: 600 27px/1.2 "BlackChancery", "Apple Chancery", cursive; }
+.detail-title { margin: 7px 0 10px; font: 600 27px/1.2 "Cinzel", serif; }
 .detail-rating { display: flex; align-items: center; gap: 7px; margin: 17px 0 10px; color: var(--pink); }
-.detail-rating strong { color: var(--text); font: 600 25px "BlackChancery", "Apple Chancery", cursive; }
+.detail-rating strong { color: var(--text); font: 600 25px "Cinzel", serif; }
 .detail-date { color: var(--muted); font-size: 11px; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 
