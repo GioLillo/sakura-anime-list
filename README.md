@@ -1,4 +1,4 @@
-# 🌸 Sakura Shelf 
+# 🌸 Sakura Anime List
 
 **A quiet, personal home for your anime collection.**
 
